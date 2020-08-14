@@ -35,6 +35,9 @@
 #define PLAYER "/usr/bin/aplay"
 #define AZAN "/usr/share/sounds/ptimes/azan.wav"
 
+#define BASH "/usr/bin/bash"
+#define SCRIPT "/home/z/.scripts/notify.sh"
+
 #define SECONDSINDAY 86400
 
 #define NODEBUG /* change to DEBUG for debugging */
@@ -259,7 +262,7 @@ int get_next_prayer(PrayerTimes *prayer_times, prayer_t *prayer) {
     return 0;
 }
 
-void play_azan() {
+void play_azan(const char* name) {
     switch(fork()) {
         case -1:
             syslog(LOG_INFO, "Unable to fork Azan player process");
@@ -268,7 +271,7 @@ void play_azan() {
         case 0:
             /* child process */
             syslog(LOG_INFO, "Forking azan player");
-            execl(PLAYER, "aplay", AZAN, (char *) 0);
+            execl(BASH, "shell", SCRIPT, name);
             exit(EXIT_SUCCESS);
             break;
         default:
@@ -390,7 +393,7 @@ int main(int argc, char *argv[])
             /* Make sure we don't keep on alerting for same prayer in the loop */
             if(last_prayer != next_prayer.name_id) {
                 syslog(LOG_INFO, "Time for %s", TimeName[next_prayer.name_id]);
-                play_azan();    
+                play_azan(TimeName[next_prayer.name_id]);    
                 last_prayer = next_prayer.name_id;
             }
         }
